@@ -1,0 +1,9 @@
+* text=auto
+* text eol=lf
+*.pdf binary
+*.jpg binary
+*.png binary
+*.ttf binary
+*.so binary
+*.jar binary
+chromedriver229 binary

@@ -1,0 +1,560 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?p2f version='1.0.0'?>
+<p2f version='1.0.0'>
+  <ius size='96'>
+    <iu id='org.eclipse.jst.ws.axis2tools.feature.feature.group' name='Axis2 Tools' version='1.1.301.v201410160332'>
+      <repositories size='4'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/releases/luna'/>
+        <repository location='http://download.eclipse.org/webtools/repository/luna'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.buildship.feature.group' name='Buildship: Eclipse Plug-ins for Gradle' version='2.1.2.v20170807-1324'>
+      <repositories size='1'>
+        <repository location='http://download.eclipse.org/buildship/updates/e47/releases/2.x/2.1.2.v20170807-1324/'/>
+      </repositories>
+    </iu>
+    <iu id='org.springframework.tooling.cloudfoundry.manifest.ls.feature.feature.group' name='Cloud Foundry Manifest Language Server Feature' version='0.0.9.201707061619-CI-B683'>
+      <repositories size='2'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+        <repository location='http://download.springsource.com/release/TOOLS/sts4-language-servers'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.cft.server.core.feature.feature.group' name='Cloud Foundry Tools Core' version='1.2.0.v201611302157'>
+      <repositories size='3'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+        <repository location='http://download.eclipse.org/cft/1.0.3/'/>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.cft.server.ui.feature.feature.group' name='Cloud Foundry Tools UI' version='1.0.7.v201611302157'>
+      <repositories size='3'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+        <repository location='http://download.eclipse.org/cft/1.0.3/'/>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.recommenders.rcp.feature.feature.group' name='Code Recommenders for Java Developers' version='2.4.5.v20161130-1427'>
+      <repositories size='1'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.recommenders.mylyn.rcp.feature.feature.group' name='Code Recommenders Mylyn Integration' version='2.4.5.v20161130-1427'>
+      <repositories size='1'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jst.ws.cxf.feature.feature.group' name='CXF Web Services' version='1.1.203.v201503151903'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jpt.common.feature.feature.group' name='Dali Java Persistence Tools - Common' version='1.5.0.v201603181811'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jpt.common.eclipselink.feature.feature.group' name='Dali Java Persistence Tools - EclipseLink Common' version='1.3.200.v201603180253'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jpt.dbws.eclipselink.feature.feature.group' name='Dali Java Persistence Tools - EclipseLink DBWS Support' version='1.2.200.v201603180253'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jpt.jaxb.eclipselink.feature.feature.group' name='Dali Java Persistence Tools - EclipseLink JAXB Support' version='1.4.200.v201603180253'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jpt.jpa.eclipselink.feature.feature.group' name='Dali Java Persistence Tools - EclipseLink JPA Support' version='3.4.100.v201603180253'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jpt.jaxb.feature.feature.group' name='Dali Java Persistence Tools - JAXB Support' version='1.5.100.v201603180253'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jpt.jpa.feature.feature.group' name='Dali Java Persistence Tools - JPA Support' version='3.5.0.v201603181811'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.datatools.connectivity.feature.feature.group' name='Data Tools Platform Connectivity' version='1.13.0.201603142002'>
+      <repositories size='1'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.datatools.connectivity.doc.user.feature.group' name='Data Tools Platform Connectivity Documentation' version='1.13.0.201603142002'>
+      <repositories size='1'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.datatools.enablement.feature.feature.group' name='Data Tools Platform Enablement' version='1.13.0.201603142002'>
+      <repositories size='1'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.datatools.intro.feature.group' name='Data Tools Platform Intro' version='1.13.0.201603142002'>
+      <repositories size='1'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.datatools.modelbase.feature.feature.group' name='Data Tools Platform Model Base' version='1.13.0.201603142002'>
+      <repositories size='1'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.datatools.sqltools.doc.user.feature.group' name='Data Tools Platform SQL Dev Tools Documentation' version='1.13.0.201603142002'>
+      <repositories size='1'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.datatools.sqldevtools.feature.feature.group' name='Data Tools Platform SQL Development Tools' version='1.13.0.201603142002'>
+      <repositories size='1'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.datatools.common.doc.user.feature.group' name='Data Tools Platform Tutorial Documentation' version='1.13.0.201603142002'>
+      <repositories size='1'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.datatools.doc.user.feature.group' name='Data Tools Platform User Documentation' version='1.13.0.201603142002'>
+      <repositories size='1'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.dltk.ruby.feature.group' name='Dynamic Languages Toolkit - Ruby Development Tools' version='5.7.0.201610180416'>
+      <repositories size='1'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='com.github.eclipsecolortheme.feature.feature.group' name='Eclipse Color Theme' version='1.0.0.201410260308'>
+      <repositories size='2'>
+        <repository location='http://eclipse-color-theme.github.com/update'/>
+        <repository location='http://www.nodeclipse.org/updates/'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.wst.common.fproj.feature.group' name='Eclipse Faceted Project Framework' version='3.7.0.v201505072140'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jst.common.fproj.enablement.jdt.feature.group' name='Eclipse Faceted Project Framework JDT Enablement' version='3.8.0.v201603091933'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.egit.feature.group' name='Eclipse Git Team Provider' version='4.4.1.201607150455-r'>
+      <repositories size='4'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://www.nodeclipse.org/updates/'/>
+        <repository location='http://download.eclipse.org/egit/updates'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.egit.mylyn.feature.group' name='Eclipse Git Team Provider - Task focused interface' version='4.4.1.201607150455-r'>
+      <repositories size='4'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://www.nodeclipse.org/updates/'/>
+        <repository location='http://download.eclipse.org/egit/updates'/>
+      </repositories>
+    </iu>
+    <iu id='epp.package.jee' name='Eclipse IDE for Java EE Developers' version='4.6.2.20161208-0625'>
+      <repositories size='1'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jdt.feature.group' name='Eclipse Java Development Tools' version='3.12.2.v20161124-1400'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/eclipse/updates/4.6'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jst.enterprise_ui.feature.feature.group' name='Eclipse Java EE Developer Tools' version='3.8.0.v201605251556'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jst.web_ui.feature.feature.group' name='Eclipse Java Web Developer Tools' version='3.8.0.v201608191717'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.pde.feature.group' name='Eclipse Plug-in Development Environment' version='3.12.2.v20161124-1400'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/eclipse/updates/4.6'/>
+      </repositories>
+    </iu>
+    <iu id='org.springsource.ide.eclipse.commons.quicksearch.feature.feature.group' name='Eclipse Quicksearch' version='3.9.0.201707061630-RELEASE'>
+      <repositories size='1'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.wst.web_ui.feature.feature.group' name='Eclipse Web Developer Tools' version='3.8.1.v201609072018'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.wst.xml_ui.feature.feature.group' name='Eclipse XML Editors and Tools' version='3.8.0.v201608061842'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.wst.xsl.feature.feature.group' name='Eclipse XSL Developer Tools' version='1.3.401.v201509231858'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='de.jcup.egradle.eclipse.feature.feature.group' name='EGradle' version='1.3.0'>
+      <repositories size='1'>
+        <repository location='https://dl.bintray.com/de-jcup/egradle/'/>
+      </repositories>
+    </iu>
+    <iu id='com.puppetlabs.geppetto.feature.group' name='Geppetto' version='4.3.1.v20150119-0753'>
+      <repositories size='1'>
+        <repository location='https://geppetto-updates.puppetlabs.com/4.x'/>
+      </repositories>
+    </iu>
+    <iu id='com.puppetlabs.geppetto.puppetdb.feature.group' name='Geppetto PuppetDB Integration' version='4.3.1.v20150117-1918'>
+      <repositories size='1'>
+        <repository location='https://geppetto-updates.puppetlabs.com/4.x'/>
+      </repositories>
+    </iu>
+    <iu id='org.codehaus.groovy.eclipse.feature.feature.group' name='Groovy-Eclipse Feature' version='2.9.2.xx-201703222339-e46'>
+      <repositories size='1'>
+        <repository location='http://dist.springsource.org/snapshot/GRECLIPSE/e4.6/'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.wst.jsdt.feature.feature.group' name='JavaScript Development Tools' version='2.0.0.v201608301904'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.wst.jsdt.chromium.debug.feature.feature.group' name='JavaScript Development Tools Chromium/V8 Remote Debugger' version='0.4.0.v201609071943'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jst.ws.jaxws.dom.feature.feature.group' name='JAX-WS DOM Tools' version='1.0.302.v201504272154'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jst.ws.jaxws.feature.feature.group' name='JAX-WS Tools' version='1.2.203.v201602092125'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.zeroturnaround.eclipse.feature.feature.group' name='JRebel (required)' version='7.0.9.RELEASE'>
+      <repositories size='1'>
+        <repository location='http://update.zeroturnaround.com/update-site'/>
+      </repositories>
+    </iu>
+    <iu id='org.zeroturnaround.eclipse.wtp.feature.feature.group' name='JRebel for Java EE' version='7.0.9.RELEASE'>
+      <repositories size='1'>
+        <repository location='http://update.zeroturnaround.com/update-site'/>
+      </repositories>
+    </iu>
+    <iu id='org.zeroturnaround.eclipse.m2e.feature.feature.group' name='JRebel Maven support (requires m2eclipse plugin)' version='7.0.9.RELEASE'>
+      <repositories size='1'>
+        <repository location='http://update.zeroturnaround.com/update-site'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jsf.feature.feature.group' name='JSF Tools' version='3.9.0.v201605262035'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jst.jsf.apache.trinidad.tagsupport.feature.feature.group' name='JSF Tools - Tag Library Metadata (Apache Trinidad)' version='2.6.0.v201410101748'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jst.webpageeditor.feature.feature.group' name='JSF Tools - Web Page Editor' version='2.8.0.v201605262035'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.sweetlemonade.eclipse.json.feature.feature.group' name='Json Tools' version='1.1.0'>
+      <repositories size='1'>
+        <repository location='https://bitbucket.org/denmiroch/jsontools/raw/ae2e9d683249ef989d940b441e00b74df729164c/JsonSite/site.xml'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jst.server_adapters.feature.feature.group' name='JST Server Adapters' version='3.2.400.v201606081655'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jst.server_adapters.ext.feature.feature.group' name='JST Server Adapters Extensions' version='3.3.501.v201609071751'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.jst.server_ui.feature.feature.group' name='JST Server UI' version='3.4.300.v201606081655'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.brainwy.liclipsetext.feature.feature.group' name='LiClipseText Feature' version='1.1.0.201610132326'>
+      <repositories size='1'>
+        <repository location='http://www.liclipse.com/text/updates'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.m2e.feature.feature.group' name='m2e - Maven Integration for Eclipse (includes Incubating components)' version='1.7.0.20160603-1933'>
+      <repositories size='3'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://www.nodeclipse.org/updates/'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.m2e.logback.feature.feature.group' name='m2e - slf4j over logback logging (Optional)' version='1.7.0.20160603-1933'>
+      <repositories size='3'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://www.nodeclipse.org/updates/'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.m2e.wtp.jaxrs.feature.feature.group' name='m2e-wtp - JAX-RS configurator for WTP (Optional)' version='1.3.1.20160831-1005'>
+      <repositories size='2'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.m2e.wtp.jpa.feature.feature.group' name='m2e-wtp - JPA configurator for WTP (Optional)' version='1.3.1.20160831-1005'>
+      <repositories size='1'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.m2e.wtp.jsf.feature.feature.group' name='m2e-wtp - JSF configurator for WTP (Optional)' version='1.3.1.20160831-1005'>
+      <repositories size='2'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.m2e.wtp.feature.feature.group' name='m2e-wtp - Maven Integration for WTP' version='1.3.1.20160831-1005'>
+      <repositories size='2'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='mercurialeclipse.feature.group' name='MercurialEclipse' version='2.3.0.201704011407'>
+      <repositories size='1'>
+        <repository location='https://bitbucket.org/mercurialeclipse/update-site/raw/default/'/>
+      </repositories>
+    </iu>
+    <iu id='org.nodeclipse.enide.editors.gradle.feature.feature.group' name='Minimalist Gradle Editor' version='1.0.2.201509250223'>
+      <repositories size='1'>
+        <repository location='http://www.nodeclipse.org/updates/'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.mylyn.ide_feature.feature.group' name='Mylyn Context Connector: Eclipse IDE' version='3.21.0.v20160912-1820'>
+      <repositories size='4'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://www.nodeclipse.org/updates/'/>
+        <repository location='http://download.eclipse.org/mylyn/releases/3.22'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.mylyn.java_feature.feature.group' name='Mylyn Context Connector: Java Development' version='3.21.0.v20160701-1337'>
+      <repositories size='4'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://www.nodeclipse.org/updates/'/>
+        <repository location='http://download.eclipse.org/mylyn/releases/3.22'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.mylyn_feature.feature.group' name='Mylyn Task List' version='3.21.0.v20160914-0252'>
+      <repositories size='4'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://www.nodeclipse.org/updates/'/>
+        <repository location='http://download.eclipse.org/mylyn/releases/3.22'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.mylyn.context_feature.feature.group' name='Mylyn Task-Focused Interface' version='3.21.0.v20160815-2336'>
+      <repositories size='4'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://www.nodeclipse.org/updates/'/>
+        <repository location='http://download.eclipse.org/mylyn/releases/3.22'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.mylyn.bugzilla_feature.feature.group' name='Mylyn Tasks Connector: Bugzilla' version='3.21.0.v20160909-1813'>
+      <repositories size='4'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://www.nodeclipse.org/updates/'/>
+        <repository location='http://download.eclipse.org/mylyn/releases/3.22'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.mylyn.wikitext_feature.feature.group' name='Mylyn WikiText' version='2.10.1.v20161129-1925'>
+      <repositories size='2'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.nodeclipse.pluginslist.feature.feature.group' name='Nodeclipse Plugins List' version='1.0.2.201509250223'>
+      <repositories size='1'>
+        <repository location='http://www.nodeclipse.org/updates/'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.oomph.setup.feature.group' name='Oomph Setup' version='1.6.0.v20161128-0928'>
+      <repositories size='3'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://marketplace.yatta.de/oomph-redirect/composite/autoupdate/client'/>
+        <repository location='http://download.eclipse.org/oomph/updates/milestone/latest'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.oomph.setup.git.feature.group' name='Oomph Setup Git' version='1.6.0.v20161019-0656'>
+      <repositories size='3'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://marketplace.yatta.de/oomph-redirect/composite/autoupdate/client'/>
+        <repository location='http://download.eclipse.org/oomph/updates/milestone/latest'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.oomph.setup.maven.feature.group' name='Oomph Setup Maven' version='1.6.0.v20161019-0656'>
+      <repositories size='3'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://marketplace.yatta.de/oomph-redirect/composite/autoupdate/client'/>
+        <repository location='http://download.eclipse.org/oomph/updates/milestone/latest'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.oomph.setup.workingsets.feature.group' name='Oomph Setup Working Sets' version='1.6.0.v20161019-0656'>
+      <repositories size='3'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://marketplace.yatta.de/oomph-redirect/composite/autoupdate/client'/>
+        <repository location='http://download.eclipse.org/oomph/updates/milestone/latest'/>
+      </repositories>
+    </iu>
+    <iu id='com.vmware.vfabric.ide.eclipse.tcserver.feature.group' name='Pivotal tc Server Integration for Eclipse' version='3.9.0.201707061818-RELEASE'>
+      <repositories size='1'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.rse.feature.group' name='Remote System Explorer End-User Runtime' version='3.7.2.201610260947'>
+      <repositories size='1'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.rse.useractions.feature.group' name='Remote System Explorer User Actions' version='3.7.0.201610260947'>
+      <repositories size='1'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.springsource.ide.eclipse.dashboard.feature.group' name='Spring Dashboard (optional)' version='3.9.0.201707061630-RELEASE'>
+      <repositories size='1'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+      </repositories>
+    </iu>
+    <iu id='org.springframework.ide.eclipse.aeri.feature.feature.group' name='Spring IDE AERI Integration' version='3.9.0.201707061730-RELEASE'>
+      <repositories size='1'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+      </repositories>
+    </iu>
+    <iu id='org.springframework.ide.eclipse.ajdt.feature.feature.group' name='Spring IDE AJDT Integration (optional)' version='3.9.0.201707061730-RELEASE'>
+      <repositories size='1'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+      </repositories>
+    </iu>
+    <iu id='org.springframework.ide.eclipse.aop.feature.feature.group' name='Spring IDE AOP Extension (optional)' version='3.9.0.201707061730-RELEASE'>
+      <repositories size='1'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+      </repositories>
+    </iu>
+    <iu id='org.springframework.ide.eclipse.autowire.feature.feature.group' name='Spring IDE Autowire Extension (optional)' version='3.9.0.201707061730-RELEASE'>
+      <repositories size='1'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+      </repositories>
+    </iu>
+    <iu id='org.springframework.ide.eclipse.batch.feature.feature.group' name='Spring IDE Batch Extension (optional)' version='3.9.0.201707061730-RELEASE'>
+      <repositories size='1'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+      </repositories>
+    </iu>
+    <iu id='org.springframework.ide.eclipse.boot.dash.feature.feature.group' name='Spring IDE Boot Microservices Dash' version='3.9.0.201707061730-RELEASE'>
+      <repositories size='1'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+      </repositories>
+    </iu>
+    <iu id='org.springframework.ide.eclipse.feature.feature.group' name='Spring IDE Core (required)' version='3.9.0.201707061730-RELEASE'>
+      <repositories size='1'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+      </repositories>
+    </iu>
+    <iu id='org.springframework.ide.eclipse.integration.feature.feature.group' name='Spring IDE Integration, Flex and Web Services Extension (optional)' version='3.9.0.201707061730-RELEASE'>
+      <repositories size='1'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+      </repositories>
+    </iu>
+    <iu id='org.springframework.ide.eclipse.maven.feature.feature.group' name='Spring IDE Maven Support' version='3.9.0.201707061730-RELEASE'>
+      <repositories size='1'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+      </repositories>
+    </iu>
+    <iu id='org.springframework.ide.eclipse.mylyn.feature.feature.group' name='Spring IDE Mylyn Integration (optional)' version='3.9.0.201707061730-RELEASE'>
+      <repositories size='1'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+      </repositories>
+    </iu>
+    <iu id='org.springframework.ide.eclipse.security.feature.feature.group' name='Spring IDE Security Extension (optional)' version='3.9.0.201707061730-RELEASE'>
+      <repositories size='1'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+      </repositories>
+    </iu>
+    <iu id='org.springframework.ide.eclipse.data.feature.feature.group' name='Spring IDE Spring Data Support' version='3.9.0.201707061730-RELEASE'>
+      <repositories size='1'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+      </repositories>
+    </iu>
+    <iu id='org.springframework.ide.eclipse.webflow.feature.feature.group' name='Spring IDE Web Flow Extension (optional)' version='3.9.0.201707061730-RELEASE'>
+      <repositories size='1'>
+        <repository location='http://dist.springsource.com/release/TOOLS/update/e4.6/'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.tm.terminal.feature.feature.group' name='TM Terminal' version='4.2.0.201611281915'>
+      <repositories size='1'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+      </repositories>
+    </iu>
+    <iu id='org.eclipse.wst.server_adapters.feature.feature.group' name='WST Server Adapters' version='3.2.500.v201606081655'>
+      <repositories size='2'>
+        <repository location='http://download.eclipse.org/releases/neon'/>
+        <repository location='http://download.eclipse.org/webtools/repository/neon'/>
+      </repositories>
+    </iu>
+  </ius>
+</p2f>
