@@ -65,13 +65,13 @@ ext.runAnsibleTagsFromGuest = { tags, rolesPath, verbosity ->
 	description 'Run ansible tasks specified by commandline property named tags. User must be running from inside guest VM since windows does not have ansible.'	
 	exec { 
 		commandLine "bash", "-c", "ANSIBLE_STDOUT_CALLBACK=debug ANSIBLE_ROLES_PATH='${rolesPath}' " \
-			+ "ansible-playbook --become --inventory-file=/tmp/vagrant-ansible/inventory /vagrant/${project.name}/provision/playbook.yml --tags=${ansibleTags} -${verbosity}" 
+			+ "ansible-playbook --become -i 'localhost,' -c local /vagrant/${project.name}/provision/playbook.yml --tags=${ansibleTags} -${verbosity}" 
 	}
 }
 
 ext.runAnsibleTagsFromHost = { tags, rolesPath, verbosity, playbook ->	 
 	description 'Run ansible tasks specified by commandline property named tags. Same as runAsnibleTagsFromGuest but runnable from the VM host.'
-	def command = "ANSIBLE_ROLES_PATH=${rolesPath} ansible-playbook --become --inventory-file=/tmp/vagrant-ansible/inventory /vagrant/${project.name}/provision/${playbook} -${verbosity} --tags=${ansibleTags}"
+	def command = "ANSIBLE_ROLES_PATH=${rolesPath} ansible-playbook --become -i 'localhost,' -c local /vagrant/${project.name}/provision/${playbook} -${verbosity} --tags=${ansibleTags}"
 	println command
 	exec {
 	  commandLine "bash", "-c", "vagrant ssh ${vagrantVMName} -c '${command}'"
@@ -85,6 +85,7 @@ ext.ansibleGalaxyCleanAndInstall = {
 		commandLine "bash", "-c", "vagrant ssh $vagrantVMName -c '/vagrant/${project.name}/provision/ansible_galaxy.sh ${project.name} --force'" 
 	}
 }
+
 task ansibleProvision() {
 	description = 'Runs ansible tags on the vagrant guest without the vagrant overhead. Useful for testing. \n' \
 		+ "* Parameter: ansibleTags - default=''. List of tags to run. \n" \
@@ -244,6 +245,67 @@ task testIntegration(dependsOn: 'ansibleRolesCleanAndInstall') {
 		ansibleRolesPath = "/vagrant/${project.name}/provision/.roles"
 		runAnsibleTagsFromHost(ansibleTags, ansibleRolesPath, ansibleVerbosity, ansiblePlaybook)
 	}
+	group = "Testing"
+}
+
+task setupLocalTestRoles {
+	description 'Checkout and great symlinks to required ansible roles.'
+	
+	//TODO read in requirement.yml and checkout versions.
+	doFirst {
+		exec { commandLine "bash", "-c", "mkdir -p provision/.roles" }
+		// Clone transitive dependencies of dependencies manually since we're not running ansible galaxy and symlink
+		exec { commandLine "bash", "-c", "if cd ../ansible-role-ansible; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-ansible; fi" }
+		exec { commandLine "bash", "-c", "rm -rf provision/.roles/ansible && ln -sf ../../../ansible-role-ansible provision/.roles/ansible" }
+
+		exec { commandLine "bash", "-c", "if cd ../ansible-role-devtools; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-devtools; fi" }
+		exec { commandLine "bash", "-c", "rm -rf provision/.roles/devtools && ln -sf ../../../ansible-role-devtools provision/.roles/devtools" }
+		
+		exec { commandLine "bash", "-c", "if cd ../ansible-role-docker-1; then git pull; else cd ../ git clone https://github.com/mtbvang/ansible-role-docker-1; fi" }
+		exec { commandLine "bash", "-c", "rm -rf provision/.roles/docker && ln -sf ../../../ansible-role-docker-1 provision/.roles/docker" }
+
+		exec { commandLine "bash", "-c", "if cd ../ansible-role-repo-epel; then git pull; else cd ../ git clone https://github.com/mtbvang/ansible-role-repo-epel; fi" }
+		exec { commandLine "bash", "-c", "rm -rf provision/.roles/epel && ln -sf ../../../ansible-role-repo-epel provision/.roles/epel" }
+		
+		exec { commandLine "bash", "-c", "if cd ../ansible-role-git; then git pull; else cd ../ git clone https://github.com/geerlingguy/ansible-role-git; fi" }
+		exec { commandLine "bash", "-c", "rm -rf provision/.roles/git && ln -sf ../../../ansible-role-git provision/.roles/git" }
+		
+		exec { commandLine "bash", "-c", "if cd ../ansible-role-intellij; then git pull; else cd ../ git clone https://github.com/mtbvang/ansible-role-intellij; fi" }
+		exec { commandLine "bash", "-c", "rm -rf provision/.roles/intellij && ln -sf ../../../ansible-role-intellij provision/.roles/intellij" }
+		
+		exec { commandLine "bash", "-c", "if cd ../ansible-role-openshift; then git pull; else cd ../ git clone https://github.com/mtbvang/ansible-role-openshift; fi" }
+		exec { commandLine "bash", "-c", "rm -rf provision/.roles/openshift && ln -sf ../../../ansible-role-openshift provision/.roles/openshift" }
+
+		exec { commandLine "bash", "-c", "if cd ../ansible-role-vagrant; then git pull; else cd ../ git clone https://github.com/mtbvang/ansible-role-vagrant; fi" }
+		exec { commandLine "bash", "-c", "rm -rf provision/.roles/vagrant && ln -sf ../../../ansible-role-vagrant provision/.roles/vagrant" }
+
+		exec { commandLine "bash", "-c", "if cd ../ansible-role-virtualbox; then git pull; else cd ../ git clone https://github.com/mtbvang/ansible-role-virtualbox; fi" }
+		exec { commandLine "bash", "-c", "rm -rf provision/.roles/virtualbox && ln -sf ../../../ansible-role-virtualbox provision/.roles/virtualbox" }
+
+		exec { commandLine "bash", "-c", "if cd ../ansible-role-eclipse; then git pull; else cd ../ git clone https://github.com/mtbvang/ansible-role-eclipse; fi" }
+		exec { commandLine "bash", "-c", "rm -rf provision/.roles/eclipse && ln -sf ../../../ansible-role-eclipse provision/.roles/eclipse" }
+	}
+}
+
+task cleanLocalTestRoles {
+	doFirst {
+		exec { commandLine "bash", "-c", "rm -rf provision/.roles"}
+	}
+	group = "Testing"
+}
+
+task testIntegrationWithLocalRoles(dependsOn: [
+	'setupLocalTestRoles', 
+	'ansibleRolesCleanAndInstall'
+]) { 
+	description "Integration tests by running the playbook using symlinks to local roles. Allows you to make changes to of the component roles locally and then integration test it." \
+		+ "* Parameters: vagrantVMName, default centos." 
+	
+	doFirst {
+		ansibleRolesPath = "/vagrant/${project.name}/provision/.roles"
+		runAnsibleTagsFromHost(ansibleTags, ansibleRolesPath, ansibleVerbosity, ansiblePlaybook)
+	}
+	setupLocalTestRoles.mustRunAfter(ansibleRolesCleanAndInstall)
 	group = "Testing"
 }
 

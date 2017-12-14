@@ -10,5 +10,5 @@ echo "ANSIBLE_GALAXY_FORCE=$ANSIBLE_GALAXY_FORCE"
 # Note vagrant runs as root, but pwd is set to /home/vagrant
 cd /vagrant/$PROJECT_NAME
 # Force removal of roles since --force does not work
-rm -rf tests/roles
+rm -rf provision/.roles
 ansible-galaxy install -p provision/.roles -c -v -r provision/requirements.yml $ANSIBLE_GALAXY_FORCE
