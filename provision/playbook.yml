@@ -23,8 +23,8 @@
     - role: intellij
       intellij_version: '2017.3'
       intellij_edition: community
-      intellij_default_jdk_home: "{{ lookup('env','JAVA_HOME') }}"
-      intellij_default_maven_home: "{{ lookup('env', 'M2_HOME') }}"
+      intellij_default_jdk_home: "/usr/lib/jvm/java-8-openjdk-amd64"
+      intellij_default_maven_home: "/usr/share/maven"
       tags: intellij
     - role: visual-studio-code
       tags: vsc
