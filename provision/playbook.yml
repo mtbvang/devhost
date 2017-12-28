@@ -11,9 +11,9 @@
   roles:
     - role: devtools
       devtools_update_packages: yes
-      devtools_user: vagrant
-      devtools_password: vagrant
-      devtools_group: vagrant
+      devtools_user: "{{ lookup('env','DEVTOOLS_USER') | default('vagrant') }}"
+      devtools_password: "{{ lookup('env','DEVTOOLS_USER_PASSWORD') | default('vagrant') }}"
+      devtools_group: "{{ lookup('env','DEVTOOLS_USER') | default('vagrant') }}"
       tags: devtools
     - role: eclipse
       eclipse_distro: neon
@@ -28,6 +28,8 @@
       tags: intellij
     - role: visual-studio-code
       tags: vsc
+    - role: ../../devhost
+      tags: devhost
   environment:
     http_proxy: "{{ lookup('env','http_proxy') }}"
     HTTP_PROXY: "{{ lookup('env','HTTP_PROXY') }}"

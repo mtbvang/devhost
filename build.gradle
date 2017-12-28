@@ -35,12 +35,6 @@ def relativeAnsibleRolesPath = "provision/.roles"
 /*
  * Project parameters: Values that can be overriden through -Pname=value
  * 
- * vagrantVMName		- The name of the vagrant VM that commands apply to.
- * vagrantProvider 	- The virutal machine provider to bring up the VM.
- * vagrantGui	  	- True will bring up a desktop for the VM.
- * vagrantVMMemory 	- The amount of RAM assigned to the VM in MB
- * vagrantTesting	- Whether or not vagrant spins up the VM in testing mode. Look at what is being done with the TESTING variable in /Vagrantfile.
- * 
  */
 def vagrantVMName = project.hasProperty('vagrantVMName') ? project.property('vagrantVMName') : 'ubuntu'
 def vagrantProvider = project.hasProperty('vagrantProvider') ? project.property('vagrantProvider') : 'vmware_workstation'
@@ -54,6 +48,7 @@ def vagrantHTTPSProxy = project.hasProperty('vagrantHTTPSProxy') ? project.prope
 def vagrantProvision = project.hasProperty('vagrantProvision') ? project.property('vagrantProvision') : '--provision'
 def vagrantNoProxy = project.hasProperty('vagrantNoProxy') ? project.property('vagrantNoProxy'): "${System.env.NO_PROXY}"
 def vagrantBoxURL = project.hasProperty('vagrantBoxURL') ? project.property('vagrantBoxURL'): "${System.env.BOX_URL}"
+def vagrantOpenshiftPort = project.hasProperty('vagrantOpenshiftPort') ? project.property('vagrantOpenshiftPort'): 8443
 
 def ansibleTags = project.hasProperty('ansibleTags') ? project.property('ansibleTags') : 'all'
 def ansibleVerbosity = project.hasProperty('ansibleVerbosity') ? project.property('ansibleVerbosity') : 'v'
@@ -124,6 +119,7 @@ ext.runVagrantUp = {
 				+ "VM_CPUS=$vagrantVMCPUs " \
 				+ "NO_PROXY=$vagrantNoProxy " \
 				+ "BOX_URL=$vagrantBoxURL " \
+				+ "OPENSHIFT_PORT_HOST=$vagrantOpenshiftPort " \
 				+ "vagrant up ${vagrantVMName} --provider ${vagrantProvider}"
 	}
 }
@@ -395,64 +391,86 @@ task packerInit() {
 				mkdir -p build 
 				curl https://releases.hashicorp.com/packer/1.1.2/packer_1.1.2_linux_amd64.zip --output build/packer_1.1.2_linux_amd64.zip 
 				unzip -o build/packer_1.1.2_linux_amd64.zip -d build
-				git clone https://github.com/mtbvang/packer-ubuntu build/packer-ubuntu
-				mv build/packer build/packer-ubuntu/packer
+				if [ -e  /usr/local/sbin/packer ]; then packer --version; else sudo cp build/packer /usr/local/sbin/packer; fi
+			"""
+		}
+		exec { 
+			commandLine "bash", "-c", """			
+				if cd build/packer-ubuntu; then git pull; else mkdir -p build/packer-ubuntu && git clone https://github.com/mtbvang/packer-ubuntu build/packer-ubuntu; fi
+			"""
+		}
+		
+		exec { 
+			commandLine "bash", "-c", """
+				if cd build/packer-centos; then git pull; else mkdir -p build/packer-centos && git clone https://github.com/mtbvang/packer-centos build/packer-centos; fi
 			"""
 		}
 	}
 }
-task packerBuild(dependsOn: packerInit) { 
+
+task packerBuildUbuntu1704(dependsOn: packerInit) { 
 	description 'Sets up the requirements to build the boxes with packer.'
 	
 	doFirst {
-		exec {
-			workingDir 'build/packer-ubuntu'
-			commandLine "bash", "-c", "packer build -only=vmware-iso -only=virtualbox-iso -var-file=ubuntu1604-desktop.json ubuntu.json"
+		ant.parallel(threadsPerProcessor: 1) { 
+			ant.exec(executable: 'sh', dir: 'build/packer-ubuntu') {
+				arg(value: '-c')
+				arg(value: 'packer build -only=vmware-iso,virtualbox-iso -var-file=ubuntu1704-desktop.json ubuntu.json')
+			}		
 		}
+		
 	}
 	group = "Packer"
 	
 }
 
+task packerBuild(dependsOn: packerInit) { 
+	description 'Sets up the requirements to build the boxes with packer.'
+	
+	doFirst {
+		ant.parallel(threadsPerProcessor: 1) { 
+			ant.exec(executable: 'sh', dir: 'build/packer-ubuntu') {
+				arg(value: '-c')
+				arg(value: 'packer build -only=vmware-iso,virtualbox-iso -var-file=ubuntu1604-desktop.json ubuntu.json')
+			}
+			ant.exec(executable: 'sh', dir: 'build/packer-centos') {
+				arg(value: '-c')
+				arg(value: 'packer build -only=virtualbox-iso -var-file=centos7-desktop.json centos.json')
+			}
+		
+		}
+		
+	}
+	group = "Packer"
+	
+}
+
+ext.vagrantAddBox = { boxName, boxProvider, boxFile ->
+
+	new ByteArrayOutputStream().withStream { os ->   
+		exec {
+			ignoreExitValue = false
+			commandLine "bash", "-c", 'vagrant box list'
+			standardOutput = os
+		}
+		if(os.toString().find(/${ boxName } \(${ boxProvider }/)) {
+			println("${ boxName } box for ${ boxProvider } already exist. Not adding")
+		}else { 
+			println("${ boxName } box for ${ boxProvider } not found. Adding.")
+			exec {
+				commandLine "bash", "-c", "vagrant box add ${ boxName } ${ boxFile } --provider ${ boxProvider }"
+			}
+		}
+	}  
+
+}
+
 task packerAddBoxes { 
 	description 'Added boxes to vagrant'
 	doFirst {
-	
-		new ByteArrayOutputStream().withStream { os ->   
-			exec {
-				ignoreExitValue = false
-				commandLine "bash", "-c", 'vagrant box list'
-				standardOutput = os
-			}
-			def match = os.toString().find(/boxcutter\/ubuntu1604-desktop \(virtualbox/)
-			if(match == null) {
-				println("boxcutter/ubuntu1604-desktop box for virtualbox not found. Adding.")
-				exec {
-					workingDir 'build/packer-ubuntu'
-					commandLine "bash", "-c", "vagrant box add boxcutter/ubuntu1604-desktop box/virtualbox/ubuntu1604-desktop-0.1.0.box --provider virtualbox"
-				}
-			}else { 
-				println("boxcutter/ubuntu1604-desktop box for virtualbox already exist. Not adding")
-			}
-		}  
-		
-		new ByteArrayOutputStream().withStream { os ->   
-			exec {
-				ignoreExitValue = false
-				commandLine "bash", "-c", 'vagrant box list'
-				standardOutput = os
-			}
-			def match = os.toString().find(/boxcutter\/ubuntu1604-desktop \(vmware_desktop/)
-			if(match == null) {
-				println("boxcutter/ubuntu1604-desktop box for vmware not found. Adding.")
-				exec {
-					workingDir 'build/packer-ubuntu'
-					commandLine "bash", "-c", "vagrant box add boxcutter/ubuntu1604-desktop box/vmware/ubuntu1604-desktop-0.1.0.box --provider vmware_desktop"
-				}
-			}else { 
-				println("boxcutter/ubuntu1604-desktop box for vmware already exist. Not adding")
-			}
-		} 
+		vagrantAddBox('boxcutter/ubuntu1604-desktop', 'virtualbox', 'build/packer-ubuntu/box/virtualbox/ubuntu1604-desktop-0.1.0.box')
+		vagrantAddBox('boxcutter/ubuntu1604-desktop', 'vmware_desktop', 'build/packer-ubuntu/box/vmware/ubuntu1604-desktop-0.1.0.box')
+		vagrantAddBox('boxcutter/centos7-desktop', 'virtualbox', 'build/packer-centos/box/virtualbox/centos7-desktop-0.0.99.box')
 	}
 	group = "Packer"
 }
