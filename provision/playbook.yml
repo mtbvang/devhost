@@ -11,9 +11,9 @@
   roles:
     - role: devtools
       devtools_update_packages: yes
-      devtools_user: "{{ lookup('env','DEVTOOLS_USER') | default('vagrant') }}"
-      devtools_password: "{{ lookup('env','DEVTOOLS_USER_PASSWORD') | default('vagrant') }}"
-      devtools_group: "{{ lookup('env','DEVTOOLS_USER') | default('vagrant') }}"
+      devtools_user: "{{ lookup('env','DEVTOOLS_USER') | default('vagrant', true) }}"
+      devtools_password: "{{ lookup('env','DEVTOOLS_USER_PASSWORD') | default('vagrant', true) }}"
+      devtools_group: "{{ lookup('env','DEVTOOLS_USER') | default('vagrant', true) }}"
       tags: devtools
     - role: eclipse
       eclipse_distro: neon

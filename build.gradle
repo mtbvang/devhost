@@ -217,6 +217,7 @@ task testUnit() {
 		+ "* Example usage: ./gradlew -PansibleTags=setnsswitch testunitfromhost"
 		ansibleGalaxy
 	doFirst { 
+		ansibleRolesPath = "/vagrant/${project.name}/${relativeAnsibleRolesPath}"
 		runAnsibleTagsFromHost(ansibleTags, ansibleRolesPath, ansibleVerbosity, ansiblePlaybook)
 	}	
 	group = "Testing"
