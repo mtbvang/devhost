@@ -8,6 +8,7 @@ Requirements
 
 - Vagrant 2.0.1
 - Virtualbox and/or VMWare Workstation
+- Ubuntu 16.04
 
 If you want to use a VMWare virtual machine the you will also need the vagrant VMWare provider https://www.vagrantup.com/vmware
 
@@ -16,6 +17,27 @@ To install the required vagrant boxes you need to build and add them using packe
 ```
 ./gradlew packer
 ```
+
+Usage
+-----
+
+This repository can be used to spin up a virtual machine with the Ubuntu 16.04 development host or to provision a local development host.
+
+To provision a local host:
+
+´´´
+curl https://raw.githubusercontent.com/mtbvang/devhost/master/provision/install.sh --output install.sh
+chmod +x install.sh
+sudo -i
+./install.sh
+
+´´´
+
+To start a virtual machine. Clone this repository and then run:
+
+´´´
+./gradlew up
+´´´
 
 Role Variables
 --------------

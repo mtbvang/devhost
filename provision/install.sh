@@ -1,6 +1,7 @@
 #!/bin/bash
 
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
+
 ANSIBLE_ROLES_PATH=$SCRIPTPATH/devhost/provision/roles
 
 apt-get update
