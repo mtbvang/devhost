@@ -25,19 +25,19 @@ This repository can be used to spin up a virtual machine with the Ubuntu 16.04 d
 
 To provision a local host:
 
-´´´
+```
 curl https://raw.githubusercontent.com/mtbvang/devhost/master/provision/install.sh --output install.sh
 chmod +x install.sh
 sudo -i
 ./install.sh
 
-´´´
+```
 
 To start a virtual machine. Clone this repository and then run:
 
-´´´
+```
 ./gradlew up
-´´´
+```
 
 Role Variables
 --------------
