@@ -48,7 +48,6 @@ def vagrantHTTPSProxy = project.hasProperty('vagrantHTTPSProxy') ? project.prope
 def vagrantProvision = project.hasProperty('vagrantProvision') ? project.property('vagrantProvision') : '--provision'
 def vagrantNoProxy = project.hasProperty('vagrantNoProxy') ? project.property('vagrantNoProxy'): "${System.env.NO_PROXY}"
 def vagrantBoxURL = project.hasProperty('vagrantBoxURL') ? project.property('vagrantBoxURL'): "${System.env.BOX_URL}"
-def vagrantOpenshiftPort = project.hasProperty('vagrantOpenshiftPort') ? project.property('vagrantOpenshiftPort'): 8443
 
 def ansibleTags = project.hasProperty('ansibleTags') ? project.property('ansibleTags') : 'all'
 def ansibleVerbosity = project.hasProperty('ansibleVerbosity') ? project.property('ansibleVerbosity') : 'v'
@@ -101,7 +100,7 @@ task vagrantInstallPlugins(type: Exec) {
 		if (Os.isFamily(Os.FAMILY_WINDOWS)) {
 			commandLine "bash", "-c", "source ~/.bash_profile && pon && vagrant plugin install vagrant-sshfs vagrant-cachier vagrant-proxyconf vagrant-vbguest vagrant-vmware-workstation"
 		} else {
-			commandLine "bash", "-c", "vagrant plugin install vagrant-sshfs vagrant-cachier vagrant-proxyconf vagrant-vbguest vagrant-vmware-workstation"
+			commandLine "bash", "-c", "vagrant plugin install vagrant-sshfs vagrant-cachier vagrant-proxyconf vagrant-vbguest"
 		}
 	}
 }
@@ -119,7 +118,6 @@ ext.runVagrantUp = {
 				+ "VM_CPUS=$vagrantVMCPUs " \
 				+ "NO_PROXY=$vagrantNoProxy " \
 				+ "BOX_URL=$vagrantBoxURL " \
-				+ "OPENSHIFT_PORT_HOST=$vagrantOpenshiftPort " \
 				+ "vagrant up ${vagrantVMName} --provider ${vagrantProvider}"
 	}
 }
@@ -203,7 +201,7 @@ task testUnitFromGuest() {
 		+ "* Parameter: ansibleRolePath - default='projectDir/${ ansibleRolesPath }'. \n" \
 		+ "* Example usage: ./gradlew -PansibleTtags=setnsswitch testunit"
 		
-	doFirst { 
+	doFirst {
 		runAnsibleTagsFromGuest(ansibleTags, ansibleRolesPath, ansibleVerbosity)
 	}	
 	group = "Testing"
@@ -259,7 +257,7 @@ task testIntegration(dependsOn: 'ansibleRolesCleanAndInstall') {
 ext.runSetupLocalTestRoles = { 
 	
 	// Run ansible galaxy to install all roles
-	exec { commandLine "bash", "-c", "provision/ansible_galaxy.sh provision/.roles --force" }
+	exec { commandLine "bash", "-c", "rm -rf provision/.roles && provision/ansible_galaxy.sh provision/.roles --force" }
 
 	// Clone transitive dependencies of dependencies manually since we're not running ansible galaxy and symlink
 	exec { commandLine "bash", "-c", "if cd ../ansible-role-ansible; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-ansible; fi" }
@@ -268,28 +266,28 @@ ext.runSetupLocalTestRoles = {
 	exec { commandLine "bash", "-c", "if cd ../ansible-role-devtools; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-devtools; fi" }
 	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/devtools && ln -sf ../../../ansible-role-devtools ${ ansibleRolesPath }/devtools" }
 	
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-docker-1; then git pull; else cd ../ git clone https://github.com/mtbvang/ansible-role-docker-1; fi" }
+	exec { commandLine "bash", "-c", "if cd ../ansible-role-docker-1; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-docker-1; fi" }
 	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/docker && ln -sf ../../../ansible-role-docker-1 ${ ansibleRolesPath }/docker" }
 
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-repo-epel; then git pull; else cd ../ git clone https://github.com/mtbvang/ansible-role-repo-epel; fi" }
+	exec { commandLine "bash", "-c", "if cd ../ansible-role-repo-epel; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-repo-epel; fi" }
 	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/epel && ln -sf ../../../ansible-role-repo-epel ${ ansibleRolesPath }/epel" }
 	
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-git; then git pull; else cd ../ git clone https://github.com/geerlingguy/ansible-role-git; fi" }
+	exec { commandLine "bash", "-c", "if cd ../ansible-role-git; then git pull; else cd ../ && git clone https://github.com/geerlingguy/ansible-role-git; fi" }
 	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/git && ln -sf ../../../ansible-role-git ${ ansibleRolesPath }/git" }
 	
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-intellij; then git pull; else cd ../ git clone https://github.com/mtbvang/ansible-role-intellij; fi" }
+	exec { commandLine "bash", "-c", "if cd ../ansible-role-intellij; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-intellij; fi" }
 	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/intellij && ln -sf ../../../ansible-role-intellij ${ ansibleRolesPath }/intellij" }
 	
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-openshift; then git pull; else cd ../ git clone https://github.com/mtbvang/ansible-role-openshift; fi" }
+	exec { commandLine "bash", "-c", "if cd ../ansible-role-openshift; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-openshift; fi" }
 	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/openshift && ln -sf ../../../ansible-role-openshift ${ ansibleRolesPath }/openshift" }
 
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-vagrant; then git pull; else cd ../ git clone https://github.com/mtbvang/ansible-role-vagrant; fi" }
+	exec { commandLine "bash", "-c", "if cd ../ansible-role-vagrant; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-vagrant; fi" }
 	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/vagrant && ln -sf ../../../ansible-role-vagrant ${ ansibleRolesPath }/vagrant" }
 
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-virtualbox; then git pull; else cd ../ git clone https://github.com/mtbvang/ansible-role-virtualbox; fi" }
+	exec { commandLine "bash", "-c", "if cd ../ansible-role-virtualbox; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-virtualbox; fi" }
 	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/virtualbox && ln -sf ../../../ansible-role-virtualbox ${ ansibleRolesPath }/virtualbox" }
 
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-eclipse; then git pull; else cd ../ git clone https://github.com/mtbvang/ansible-role-eclipse; fi" }
+	exec { commandLine "bash", "-c", "if cd ../ansible-role-eclipse; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-eclipse; fi" }
 	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/eclipse && ln -sf ../../../ansible-role-eclipse ${ ansibleRolesPath }/eclipse" }
 
 }
@@ -310,8 +308,7 @@ task cleanLocalTestRoles {
 }
 
 task testIntegrationWithLocalRoles(dependsOn: [
-	'setupLocalTestRoles', 
-	'ansibleRolesCleanAndInstall'
+	'setupLocalTestRoles'
 ]) { 
 	description "Integration tests by running the playbook using symlinks to local roles. Allows you to make changes to of the component roles locally and then integration test it." \
 		+ "* Parameters: vagrantVMName, default centos." 
@@ -320,7 +317,6 @@ task testIntegrationWithLocalRoles(dependsOn: [
 		ansibleRolesPath = "/vagrant/${project.name}/${relativeAnsibleRolesPath}"
 		runAnsibleTagsFromHost(ansibleTags, ansibleRolesPath, ansibleVerbosity, ansiblePlaybook)
 	}
-	setupLocalTestRoles.mustRunAfter(ansibleRolesCleanAndInstall)
 	group = "Testing"
 }
 
@@ -332,6 +328,7 @@ task testIntegrationWithLocalRolesWithCleanVM() {
 		runVagrantDestroy()
 		runSetupLocalTestRoles()
 		ansibleGalaxy = false
+		vagrantProvider='virtualbox'
 		runVagrantUp()
 	}
 	group = "Testing"
@@ -346,6 +343,7 @@ task testIntegrationAllTasksDisabled(dependsOn: 'destroy') {
 	./gradlew testintegrationalltasksdisabled -x destroy'''
 	
 	doFirst {
+		vagrantProvider='virtualbox'
 		exec { 
 			commandLine "bash", "-c", "TESTING=$vagrantTesting " \
 			+ "ANSIBLE_PLAYBOOK='testAllTasksDisabled.yml' " \

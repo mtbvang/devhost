@@ -3,7 +3,6 @@
 ANSIBLE_ROLES_PATH=$1
 ANSIBLE_GALAXY_FORCE=$2 # Note This variable has no effect. Even with force set the transitive dependencies are not being updated. Doing a delete of roles instead.
 
-echo "PROJECT_NAME=$PROJECT_NAME"
 echo "ANSIBLE_GALAXY_FORCE=$ANSIBLE_GALAXY_FORCE"
 
 # Run ansibile
