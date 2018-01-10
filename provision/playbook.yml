@@ -30,6 +30,7 @@
       tags: vsc
     - role: ../../devhost
       tags: devhost
+    - role: openshift_client
   environment:
     http_proxy: "{{ lookup('env','http_proxy') }}"
     HTTP_PROXY: "{{ lookup('env','HTTP_PROXY') }}"

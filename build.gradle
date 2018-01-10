@@ -278,8 +278,8 @@ ext.runSetupLocalTestRoles = {
 	exec { commandLine "bash", "-c", "if cd ../ansible-role-intellij; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-intellij; fi" }
 	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/intellij && ln -sf ../../../ansible-role-intellij ${ ansibleRolesPath }/intellij" }
 	
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-openshift; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-openshift; fi" }
-	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/openshift && ln -sf ../../../ansible-role-openshift ${ ansibleRolesPath }/openshift" }
+	exec { commandLine "bash", "-c", "if cd ../ansible-role-openshift_client; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-openshift_client; fi" }
+	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/openshift && ln -sf ../../../ansible-role-openshift_client ${ ansibleRolesPath }/openshift_client" }
 
 	exec { commandLine "bash", "-c", "if cd ../ansible-role-vagrant; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-vagrant; fi" }
 	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/vagrant && ln -sf ../../../ansible-role-vagrant ${ ansibleRolesPath }/vagrant" }
