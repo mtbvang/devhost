@@ -7,7 +7,7 @@
   version: v1.8.3
 - src: https://github.com/mtbvang/ansible-role-intellij
   name: intellij
-  version: 3.0.0
+  version: 3.0.5
 - src: https://github.com/mtbvang/ansible-role-visual-studio-code
   name: visual-studio-code
   version: 2.13.1

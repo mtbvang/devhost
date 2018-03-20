@@ -1,15 +1,15 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 
 buildscript {
-	repositories {
-		maven { url "https://plugins.gradle.org/m2/" }
-		jcenter()
-	}
-	dependencies {
-		classpath "gradle.plugin.com.dorongold.plugins:task-tree:1.3"
-		classpath "org.hidetake:gradle-ssh-plugin:2.8.0"
-		classpath "net.rdrei.android.buildtimetracker:gradle-plugin:0.11.+"
-	}
+    repositories {
+        maven { url "https://plugins.gradle.org/m2/" }
+        jcenter()
+    }
+    dependencies {
+        classpath "gradle.plugin.com.dorongold.plugins:task-tree:1.3"
+        classpath "org.hidetake:gradle-ssh-plugin:2.8.0"
+        classpath "net.rdrei.android.buildtimetracker:gradle-plugin:0.11.+"
+    }
 }
 
 apply plugin: "com.dorongold.task-tree"
@@ -17,467 +17,554 @@ apply plugin: "org.hidetake.ssh"
 apply plugin: "build-time-tracker"
 
 buildtimetracker {
-	reporters {
-		summary {
-			ordered false
-			threshold 1
-			barstyle "unicode"
-		}
-	}
+    reporters {
+        summary {
+            ordered false
+            threshold 1
+            barstyle "unicode"
+        }
+    }
 }
 
 defaultTasks 'up'
 
+def console = System.console()
 def projectParentDir = file(new File("$projectDir/../").absolutePath)
 def relativeAnsibleRolesPath = "provision/.roles"
 // FIXME Replace with gradle devtools plugin.
 
 /*
- * Project parameters: Values that can be overriden through -Pname=value
+ * Project parameters: Values that can be overriden through -Pname=value. This build file is designed to be used with the Vagrantfile because of reliance on sync folder paths from guest to host.
  * 
  */
 def vagrantVMName = project.hasProperty('vagrantVMName') ? project.property('vagrantVMName') : 'ubuntu'
 def vagrantProvider = project.hasProperty('vagrantProvider') ? project.property('vagrantProvider') : 'vmware_workstation'
 def vagrantGui = project.hasProperty('vagrantGui') ? project.property('vagrantGui') : true
-def vagrantVMMemory = project.hasProperty('vagrantVMMemory') ? project.property('vagrantVMMemory') : 6144
+def vagrantVMMemory = project.hasProperty('vagrantVMMemory') ? project.property('vagrantVMMemory') : 8192
 def vagrantTesting = project.hasProperty('vagrantTesting') ? project.property('vagrantTesting') : false
 def vagrantVBGuest = project.hasProperty('vagrantVBGuest') ? project.property('vagrantVBGuest') : true
-def vagrantVMCPUs = project.hasProperty('vagrantVMCPUs') ? project.property('vagrantVMCPUs') : 2
-def vagrantHTTPProxy = project.hasProperty('vagrantHTTPProxy') ? project.property('vagrantHTTPProxy') : "${System.env.HTTP_PROXY}"	// Guest OS http_proxy value set by vagrant
-def vagrantHTTPSProxy = project.hasProperty('vagrantHTTPSProxy') ? project.property('vagrantHTTPSProxy') : "${System.env.HTTPS_PROXY}"	// Guest OS https_proxy value set by vagrant
+def vagrantVMCPUs = project.hasProperty('vagrantVMCPUs') ? project.property('vagrantVMCPUs') : 4
+def vagrantVMCPUCap = project.hasProperty('vagrantVMCPUCap') ? project.property('vagrantVMCPUCap') : 100
+def vagrantHTTPProxy = project.hasProperty('vagrantHTTPProxy') ? project.property('vagrantHTTPProxy') : "${System.env.HTTP_PROXY}"    // Guest OS http_proxy value set by vagrant
+def vagrantHTTPSProxy = project.hasProperty('vagrantHTTPSProxy') ? project.property('vagrantHTTPSProxy') : "${System.env.HTTPS_PROXY}"    // Guest OS https_proxy value set by vagrant
 def vagrantProvision = project.hasProperty('vagrantProvision') ? project.property('vagrantProvision') : '--provision'
-def vagrantNoProxy = project.hasProperty('vagrantNoProxy') ? project.property('vagrantNoProxy'): "${System.env.NO_PROXY}"
-def vagrantBoxURL = project.hasProperty('vagrantBoxURL') ? project.property('vagrantBoxURL'): "${System.env.BOX_URL}"
+def vagrantNoProxy = project.hasProperty('vagrantNoProxy') ? project.property('vagrantNoProxy') : "${System.env.NO_PROXY}"
+def vagrantBoxURL = project.hasProperty('vagrantBoxURL') ? project.property('vagrantBoxURL') : "${System.env.BOX_URL}"
 
 def ansibleTags = project.hasProperty('ansibleTags') ? project.property('ansibleTags') : 'all'
+def ansibleSkipTags = project.hasProperty('ansibleSkipTags') ? project.property('ansibleSkipTags') : ''
 def ansibleVerbosity = project.hasProperty('ansibleVerbosity') ? project.property('ansibleVerbosity') : 'v'
 def ansibleRolesPath = project.hasProperty('ansibleRolesPath') ? project.property('ansibleRolesPath') : "${projectDir}/${relativeAnsibleRolesPath}"
-def ansiblePlaybook = project.hasProperty('ansiblePlaybook') ? project.property('ansiblePlaybook') : 'playbook.yml'
+def ansiblePlaybookPathGuest = project.hasProperty('ansiblePlaybookPathGuest') ? project.property('ansiblePlaybookPathGuest') : "/vagrant/${project.name}/provision/playbook.yml"
+def ansiblePlaybookPathHost = project.hasProperty('ansiblePlaybookPathHost') ? project.property('ansiblePlaybookPathHost') : "${projectDir}/provision/playbook.yml"
 def ansibleGalaxyForce = project.hasProperty('ansibleGalaxyForce') ? project.property('ansibleGalaxyForce') : '--force'
 def ansibleGalaxy = project.hasProperty('ansibleGalaxy') ? project.property('ansibleGalaxy') : true
 
-ext.runAnsibleTagsFromGuest = { tags, rolesPath, verbosity ->
-	description 'Run ansible tasks specified by commandline property named tags. User must be running from inside guest VM since windows does not have ansible.'	
-	exec { 
-		commandLine "bash", "-c", "ANSIBLE_STDOUT_CALLBACK=debug ANSIBLE_ROLES_PATH='${rolesPath}' " \
-			+ "ansible-playbook --become -i 'localhost,' -c local /vagrant/${project.name}/provision/playbook.yml --tags=${ansibleTags} -${verbosity}" 
-	}
+
+ext.runAnsibleTagsOnLocal = { tags, skipTags, rolesPath, verbosity, playbookPath, sudoPassword ->
+    description 'Run ansible tasks specified by commandline property named tags. User must be running from inside guest VM since windows does not have ansible.'
+    exec {
+        commandLine "bash", "-c", "ANSIBLE_STDOUT_CALLBACK=debug ANSIBLE_ROLES_PATH='${rolesPath}' " \
+			 + "ansible-playbook --extra-vars 'ansible_sudo_pass=${sudoPassword} intellij_username=${System.env.USER}' --become -i 'localhost,' -c local ${playbookPath} --tags=${tags} --skip-tags=${skipTags} -${verbosity}"
+    }
 }
 
-ext.runAnsibleTagsFromHost = { tags, rolesPath, verbosity, playbook ->	 
-	description 'Run ansible tasks specified by commandline property named tags. Same as runAsnibleTagsFromGuest but runnable from the VM host.'
-	def command = "ANSIBLE_ROLES_PATH=${rolesPath} ansible-playbook --become -i 'localhost,' -c local /vagrant/${project.name}/provision/${playbook} -${verbosity} --tags=${ansibleTags}"
-	println command
-	exec {
-	  commandLine "bash", "-c", "vagrant ssh ${vagrantVMName} -c '${command}'"
-	}
-	
+ext.runAnsibleTagsFromHost = { tags, skipTags, rolesPath, verbosity, playbookPath ->
+    description 'Run ansible tasks specified by commandline property named tags. Same as runAsnibleTagsFromGuest but runnable from the VM host.'
+    def command = "ANSIBLE_ROLES_PATH=${rolesPath} ansible-playbook --become -i 'localhost,' -c local ${playbookPath} -${verbosity} --tags=${tags} --skip-tags=${skipTags}"
+    println command
+    exec {
+        commandLine "bash", "-c", "vagrant ssh ${vagrantVMName} -c '${command}'"
+    }
+
 }
 
-ext.ansibleGalaxyCleanAndInstall = { 
-	description 'Run ansible galaxy from with in the guest VM. Calls the provision/ansible_galaxy.sh script that cleans and updates all roles.'
-	exec { 
-		commandLine "bash", "-c", "vagrant ssh $vagrantVMName -c '/vagrant/${project.name}/provision/ansible_galaxy.sh ${project.name} --force'" 
-	}
+ext.ansibleGalaxyCleanAndInstall = {
+    description 'Run ansible galaxy from with in the guest VM. Calls the provision/ansible_galaxy.sh script that cleans and updates all roles.'
+    exec {
+        commandLine "bash", "-c", "vagrant ssh $vagrantVMName -c '/vagrant/${project.name}/provision/ansible_galaxy.sh ${project.name} --force'"
+    }
+}
+
+task ansibleRoles {
+    description 'Remove and reinstal galaxy roles'
+    doFirst {
+        exec {
+            commandLine "bash", "-c","rm -rf ${relativeAnsibleRolesPath} && ansible-galaxy install -p ${relativeAnsibleRolesPath} -c -vv -r provision/requirements.yml --force"
+        }
+    }
 }
 
 task ansibleProvision() {
-	description = 'Runs ansible tags on the vagrant guest without the vagrant overhead. Useful for testing. \n' \
-		+ "* Parameter: ansibleTags - default=''. List of tags to run. \n" \
-		+ "* Parameter: limit - default=''. Limit selected hosts to run. \n" \
-		+ "* Parameter: ansibleVerbosity - default='-v'. Verbosity of logging. v to vvvv. \n" \
-		+ "* Parameter: ansibleRolePath - default='projectDir/${ ansibleRolesPath }'. \n" \
-		+ "* Example usage: ./gradlew -PansibleTags=mvn ansibleProvision"
+    description = 'Runs ansible tags on the current commandline host. Can be used from the host or guest. Useful for testing and updating. \n' \
+		 + "* Parameter: ansibleTags - default=''. List of tags to run. \n" \
+		 + "* Parameter: limit - default=''. Limit selected hosts to run. \n" \
+		 + "* Parameter: ansibleVerbosity - default='-v'. Verbosity of logging. v to vvvv. \n" \
+		 + "* Parameter: ansibleRolePath - default='projectDir/${ansibleRolesPath}'. \n" \
+		 + "* Example usage: ./gradlew -PansibleTags=mvn ansibleProvision"
 
-	doFirst {
-		runAnsibleTagsFromGuest(ansibleTags, ansibleRolesPath, ansibleVerbosity)
-	}
+    doFirst {
+        def ansibleSudoPassword = project.hasProperty('ansibleSudoPassword') ? project.property('ansibleSudoPassword') : console.readPassword('> Enter your sudo password: ')
+        runAnsibleTagsOnLocal(ansibleTags, ansibleSkipTags, ansibleRolesPath, ansibleVerbosity, ansiblePlaybookPathHost, ansibleSudoPassword)
+    }
+}
+
+task ansibleProvisionGuest() {
+    description = 'Runs ansible tags on the vagrant guest from without the vagrant overhead. Useful for testing and updating. \n' \
+		 + "* Parameter: ansibleTags - default=''. List of tags to run. \n" \
+		 + "* Parameter: limit - default=''. Limit selected hosts to run. \n" \
+		 + "* Parameter: ansibleVerbosity - default='-v'. Verbosity of logging. v to vvvv. \n" \
+		 + "* Parameter: ansibleRolePath - default='projectDir/${ansibleRolesPath}'. \n" \
+		 + "* Example usage: ./gradlew -PansibleTags=mvn ansibleProvision"
+
+    doFirst {
+        runAnsibleTagsOnLocal(ansibleTags, ansibleSkipTags, ansibleRolesPath, ansibleVerbosity, ansiblePlaybookPathGuest)
+    }
 }
 
 task vagrantInstallPlugins(type: Exec) {
-	description 'Installs vagrant plugins.'
-	doFirst {
-		if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-			commandLine "bash", "-c", "source ~/.bash_profile && pon && vagrant plugin install vagrant-sshfs vagrant-cachier vagrant-proxyconf vagrant-vbguest vagrant-vmware-workstation"
-		} else {
-			commandLine "bash", "-c", "vagrant plugin install vagrant-sshfs vagrant-cachier vagrant-proxyconf vagrant-vbguest"
-		}
-	}
+    description 'Installs vagrant plugins.'
+    doFirst {
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            commandLine "bash", "-c", "source ~/.bash_profile && pon && vagrant plugin install vagrant-sshfs vagrant-cachier vagrant-proxyconf vagrant-vbguest vagrant-vmware-workstation"
+        } else {
+            commandLine "bash", "-c", "vagrant plugin install vagrant-sshfs vagrant-cachier vagrant-proxyconf vagrant-vbguest"
+        }
+    }
 }
 
-ext.runVagrantUp = { 
-	exec { 
-		commandLine "bash", "-c", "TESTING=$vagrantTesting " \
-				+ "ANSIBLE_PLAYBOOK=$ansiblePlaybook " \
-				+ "ANSIBLE_GALAXY_FORCE=$ansibleGalaxyForce " \
-				+ "ANSIBLE_GALAXY=$ansibleGalaxy " \
-				+ "HTTP_PROXY=$vagrantHTTPProxy " \
-				+ "HTTPS_PROXY=$vagrantHTTPSProxy " \
-				+ "VM_MEMORY=$vagrantVMMemory " \
-				+ "VM_GUI=$vagrantGui " \
-				+ "VM_CPUS=$vagrantVMCPUs " \
-				+ "NO_PROXY=$vagrantNoProxy " \
-				+ "BOX_URL=$vagrantBoxURL " \
-				+ "vagrant up ${vagrantVMName} --provider ${vagrantProvider}"
-	}
+ext.runVagrantUp = {
+    exec {
+        commandLine "bash", "-c", "ANSIBLE_GALAXY_FORCE=$ansibleGalaxyForce " \
+				 + "ANSIBLE_GALAXY=$ansibleGalaxy " \
+				 + "HTTP_PROXY=$vagrantHTTPProxy " \
+				 + "HTTPS_PROXY=$vagrantHTTPSProxy " \
+				 + "VM_MEMORY=$vagrantVMMemory " \
+				 + "VM_GUI=$vagrantGui " \
+				 + "VM_CPUS=$vagrantVMCPUs " \
+				 + "VM_CPU_CAP=$vagrantVMCPUCap " \
+				 + "NO_PROXY=$vagrantNoProxy " \
+				 + "BOX_URL=$vagrantBoxURL " \
+				 + "vagrant up ${vagrantVMName} --provider ${vagrantProvider}"
+    }
 }
 
 task vagrantUp(type: Exec) {
-	description = "Bring up the VM with vagrant" \
-		+ "* Parameter: vagrantVMMemory - default=6144. Memory in MB to assing to the VM. \n" \
-		+ "* Parameter: vagrantTesting  - default=false. Whether or not vagrant spins up the VM in testing mode. Look at what is being done with the TESTING variable in /Vagrantfile. \n" \
-		+ "* Parameter: vagrantVMName	- default=centos. The name of the vagrant VM that this command applies to. Set to blank for all VMs. \n" \
-		+ "* Parameter: vagrantProvider - default=virtualbox. The virutal machine provider to bring up the VM. \n" \
-		+ "* Parameter: vagrantGui	  - default=true. True will bring up a desktop for the VM. \n" \
-		+ "* Parameter: proxyServer	 - default=10.53.99.81:3128. The proxy server name and port string used to contruct the full http and https strings. \n"
-		
-	doFirst {
-			runVagrantUp()
-	}
+    description = "Bring up the VM with vagrant" \
+		 + "* Parameter: vagrantVMMemory - default=6144. Memory in MB to assing to the VM. \n" \
+		 + "* Parameter: vagrantTesting  - default=false. Whether or not vagrant spins up the VM in testing mode. Look at what is being done with the TESTING variable in /Vagrantfile. \n" \
+		 + "* Parameter: vagrantVMName	- default=centos. The name of the vagrant VM that this command applies to. Set to blank for all VMs. \n" \
+		 + "* Parameter: vagrantProvider - default=virtualbox. The virutal machine provider to bring up the VM. \n" \
+		 + "* Parameter: vagrantGui	  - default=true. True will bring up a desktop for the VM. \n" \
+		 + "* Parameter: proxyServer	 - default=10.53.99.81:3128. The proxy server name and port string used to contruct the full http and https strings. \n"
+
+    doFirst {
+        runVagrantUp()
+    }
 }
 
 task vagrantReload() {
-	description 'Halt and restart the local development VM. \n' \
-		+ "* Parameter: vagrantVMMemory 	- default=6144. Memory in MB to assing to the VM. \n" \
-		+ "* Parameter: vagrantTesting  	- default=false. Whether or not vagrant spins up the VM in testing mode. Look at what is being done with the TESTING variable in /Vagrantfile. \n" \
-		+ "* Parameter: vagrantVMName		- default=centos. The name of the vagrant VM that this command applies to. Set to blank for all VMs. \n" \
-		+ "* Parameter: vagrantProvider 	- default=virtualbox. The virutal machine provider to bring up the VM. \n" \
-		+ "* Parameter: vagrantGui	  	- default=true. True will bring up a desktop for the VM. \n" \
-		+ "* Parameter: vagrantNoProxy	  	- default=${vagrantNoProxy}. The no proxy environment variable. \n" \
-		+ "* Parameter: proxyServer	 	- default=10.53.99.81:3128. The proxy server name and port string used to contruct the full http and https strings. \n"
-		
-	doFirst {
-		exec {
-			commandLine "bash", "-c", "TESTING=$vagrantTesting " \
-			+ "HTTP_PROXY=$vagrantHTTPProxy " \
-			+ "HTTPS_PROXY=$vagrantHTTPSProxy " \
-			+ "VM_MEMORY=$vagrantVMMemory " \
-			+ "VM_GUI=$vagrantGui " \
-			+ "VM_CPUS=$vagrantVMCPUs " \
-			+ "NO_PROXY=$vagrantNoProxy " \
-			+ "BOX_URL=$vagrantBoxURL " \
-			+ "vagrant reload ${vagrantVMName}"
-		}
-	}
-	vagrantReload.group = "Usefull"
+    description 'Halt and restart the local development VM. \n' \
+		 + "* Parameter: vagrantVMMemory 	- default=6144. Memory in MB to assing to the VM. \n" \
+		 + "* Parameter: vagrantTesting  	- default=false. Whether or not vagrant spins up the VM in testing mode. Look at what is being done with the TESTING variable in /Vagrantfile. \n" \
+		 + "* Parameter: vagrantVMName		- default=centos. The name of the vagrant VM that this command applies to. Set to blank for all VMs. \n" \
+		 + "* Parameter: vagrantProvider 	- default=virtualbox. The virutal machine provider to bring up the VM. \n" \
+		 + "* Parameter: vagrantGui	  	- default=true. True will bring up a desktop for the VM. \n" \
+		 + "* Parameter: vagrantNoProxy	  	- default=${vagrantNoProxy}. The no proxy environment variable. \n" \
+		 + "* Parameter: proxyServer	 	- default=10.53.99.81:3128. The proxy server name and port string used to contruct the full http and https strings. \n"
+
+    doFirst {
+        exec {
+            commandLine "bash", "-c", "TESTING=$vagrantTesting " \
+			 + "HTTP_PROXY=$vagrantHTTPProxy " \
+			 + "HTTPS_PROXY=$vagrantHTTPSProxy " \
+			 + "VM_MEMORY=$vagrantVMMemory " \
+			 + "VM_GUI=$vagrantGui " \
+			 + "VM_CPUS=$vagrantVMCPUs " \
+			 + "NO_PROXY=$vagrantNoProxy " \
+			 + "BOX_URL=$vagrantBoxURL " \
+			 + "vagrant reload ${vagrantVMName}"
+        }
+    }
+    vagrantReload.group = "Usefull"
 
 }
 
 task up(dependsOn: [
-	'vagrantUp',
-	'vagrantInstallPlugins'
+        'vagrantUp',
+        'vagrantInstallPlugins'
 ]
-) { 
-	description = "DEFAULT TASK: Bring up and provision all definied VMs." 
-	up.group = "Usefull"
-	// Ordering for up task
-	vagrantUp.mustRunAfter(vagrantInstallPlugins)
+) {
+    description = "DEFAULT TASK: Bring up and provision all definied VMs."
+    up.group = "Usefull"
+    // Ordering for up task
+    vagrantUp.mustRunAfter(vagrantInstallPlugins)
 }
 
-ext.runVagrantDestroy = { 
-	exec { 
-		ignoreExitValue = true
-		commandLine "bash", "-c", "vagrant destroy -f ${vagrantVMName}" 
-	}
+ext.runVagrantDestroy = {
+    exec {
+        ignoreExitValue = true
+        commandLine "bash", "-c", "vagrant destroy -f ${vagrantVMName}"
+    }
 }
 task destroy() {
-	description 'Destroy all VMs. If you want to destroy a particular VM run \'vagrant destroy -f VM_NAME\''
-	doFirst {
-		runVagrantDestroy()
-	}
+    description 'Destroy all VMs. If you want to destroy a particular VM run \'vagrant destroy -f VM_NAME\''
+    doFirst {
+        runVagrantDestroy()
+    }
 }
 
-task recreate(dependsOn: ['destroy', 'up']) { 
-	description 'Destroy and up the local development VM' 
-	// Ensure task ordering for recreate
-	up.mustRunAfter(destroy)
-	group = "Usefull"
-} 
+task recreate(dependsOn: ['destroy', 'up']) {
+    description 'Destroy and up the local development VM'
+    // Ensure task ordering for recreate
+    up.mustRunAfter(destroy)
+    group = "Usefull"
+}
 
-task testUnitFromGuest() { 
-	description "Note: Windows users can't run this role. Run unit style test by using ansible tags to run specific tasks. Tag all your tasks during development so that they can be run to give this style of test.\n" \
-		+ "* Parameter: ansibleTags - default=''. List of tags to run. \n" \
-		+ "* Parameter: ansibleVerbosity - default='-v'. Verbosity of logging. v to vvvv. \n" \
-		+ "* Parameter: ansibleRolePath - default='projectDir/${ ansibleRolesPath }'. \n" \
-		+ "* Example usage: ./gradlew -PansibleTtags=setnsswitch testunit"
+
+task syncToWindows {
+    description 'Rsyncs this project over to windows' \
+		 + "* Parameter: ansibleTags - default=''. List of tags to run. \n"  \
 		
-	doFirst {
-		runAnsibleTagsFromGuest(ansibleTags, ansibleRolesPath, ansibleVerbosity)
-	}	
-	group = "Testing"
-}
-
-task testUnit() { 
-	description 'Run unit style test by using ansible tags to run specific tasks. Tag all your tasks during development so that they can be run to give this style of test.\n' \
-		+ "* Parameter: ansibleTags - default=''. List of tags to run. \n" \
-		+ "* Parameter: ansibleVerbosity - default='-v'. Verbosity of logging. -v to -vvvv. \n" \
-		+ "* Parameter: ansibleRolePath - default='projectDir/${ ansibleRolesPath }'. \n" \
-		+ "* Example usage: ./gradlew -PansibleTags=setnsswitch testunitfromhost"
-		ansibleGalaxy
-	doFirst { 
-		ansibleRolesPath = "/vagrant/${project.name}/${relativeAnsibleRolesPath}"
-		runAnsibleTagsFromHost(ansibleTags, ansibleRolesPath, ansibleVerbosity, ansiblePlaybook)
-	}	
-	group = "Testing"
-}
-
-task testComponent() { 
-	description 'Run component tests by using ansible tags to run specific tasks. Like unitTests task, but use component style ansible tagging.\n' \
-		+ "* Parameter: ansibleTags - default=''. List of tags to run. \n" \
-		+ "* Parameter: ansibleRolePath - default='projectDir/${ ansibleRolesPath }'. " \
-		+ "* Example usage: ./gradlew -PansibleTags=dns testcomponent"
-		
-	doFirst { 
-		runAnsibleTags()
-	}	
-	group = "Testing"
-}
-
-task testIntegrationWithCleanVM(dependsOn: 'recreate') {
-	description 'Calls recreate. This task is here more for documentation and convenience.'
-	group = "Testing"  
-}
-
-task ansibleRolesCleanAndInstall { 
-	description 'Clean and updates ansible roles.'
-	doFirst { 
-		ansibleGalaxyCleanAndInstall()
-	}
-}
-
-task testIntegration(dependsOn: 'ansibleRolesCleanAndInstall') {
-	description 'Integration test the role by running vagrant ansibleGalaxy and ansiblePlaybook provisioners within the guest VM. The provisioning scripts run by vagrant will delete all roles to force their download.'
-	doFirst {
-		ansibleRolesPath = "/vagrant/${project.name}/${relativeAnsibleRolesPath}"
-		runAnsibleTagsFromHost(ansibleTags, ansibleRolesPath, ansibleVerbosity, ansiblePlaybook)
-	}
-	group = "Testing"
-}
-
-ext.runSetupLocalTestRoles = { 
-	
-	// Run ansible galaxy to install all roles
-	exec { commandLine "bash", "-c", "rm -rf provision/.roles && provision/ansible_galaxy.sh provision/.roles --force" }
-
-	// Clone transitive dependencies of dependencies manually since we're not running ansible galaxy and symlink
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-ansible; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-ansible; fi" }
-	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/ansible && ln -sf ../../../ansible-role-ansible ${ ansibleRolesPath }/ansible" }
-
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-devtools; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-devtools; fi" }
-	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/devtools && ln -sf ../../../ansible-role-devtools ${ ansibleRolesPath }/devtools" }
-	
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-docker-1; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-docker-1; fi" }
-	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/docker && ln -sf ../../../ansible-role-docker-1 ${ ansibleRolesPath }/docker" }
-
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-repo-epel; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-repo-epel; fi" }
-	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/epel && ln -sf ../../../ansible-role-repo-epel ${ ansibleRolesPath }/epel" }
-	
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-git; then git pull; else cd ../ && git clone https://github.com/geerlingguy/ansible-role-git; fi" }
-	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/git && ln -sf ../../../ansible-role-git ${ ansibleRolesPath }/git" }
-	
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-intellij; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-intellij; fi" }
-	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/intellij && ln -sf ../../../ansible-role-intellij ${ ansibleRolesPath }/intellij" }
-	
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-openshift_client; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-openshift_client; fi" }
-	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/openshift && ln -sf ../../../ansible-role-openshift_client ${ ansibleRolesPath }/openshift_client" }
-
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-vagrant; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-vagrant; fi" }
-	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/vagrant && ln -sf ../../../ansible-role-vagrant ${ ansibleRolesPath }/vagrant" }
-
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-virtualbox; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-virtualbox; fi" }
-	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/virtualbox && ln -sf ../../../ansible-role-virtualbox ${ ansibleRolesPath }/virtualbox" }
-
-	exec { commandLine "bash", "-c", "if cd ../ansible-role-eclipse; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-eclipse; fi" }
-	exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }/eclipse && ln -sf ../../../ansible-role-eclipse ${ ansibleRolesPath }/eclipse" }
-
-}
-task setupLocalTestRoles {
-	description 'Checkout and great symlinks to required ansible roles.'
-	
-	//TODO read in requirement.yml and checkout versions.
-	doFirst {
-		runSetupLocalTestRoles()
-	}
-}
-
-task cleanLocalTestRoles {
-	doFirst {
-		exec { commandLine "bash", "-c", "rm -rf ${ ansibleRolesPath }"}
-	}
-	group = "Testing"
-}
-
-task testIntegrationWithLocalRoles(dependsOn: [
-	'setupLocalTestRoles'
-]) { 
-	description "Integration tests by running the playbook using symlinks to local roles. Allows you to make changes to of the component roles locally and then integration test it." \
-		+ "* Parameters: vagrantVMName, default centos." 
-	
-	doFirst {
-		ansibleRolesPath = "/vagrant/${project.name}/${relativeAnsibleRolesPath}"
-		runAnsibleTagsFromHost(ansibleTags, ansibleRolesPath, ansibleVerbosity, ansiblePlaybook)
-	}
-	group = "Testing"
-}
-
-task testIntegrationWithLocalRolesWithCleanVM() { 
-	description "Integration tests by running the playbook using symlinks to local roles on a clean VM. Allows you to make changes to of the component roles locally and then integration test it." \
-		+ "* Parameters: vagrantVMName, default centos." 
-	
-	doFirst {
-		runVagrantDestroy()
-		runSetupLocalTestRoles()
-		ansibleGalaxy = false
-		vagrantProvider='virtualbox'
-		runVagrantUp()
-	}
-	group = "Testing"
-}
-
-
-task testIntegrationAllTasksDisabled(dependsOn: 'destroy') { 
-	description '''
-	Test all flags sued to disable tasks so that nothing gets installed. Integration tests the role by running vagrant ansibleGalaxy and 
-	ansiblePlaybook provisioners within the guest VM via the vagrant ansible_local provisioner. The provisioning scripts run by vagrant 
-	will delete all roles to force their download. To rerun the playbook on the existing VM run gradle with the -x option e.g.: 
-	./gradlew testintegrationalltasksdisabled -x destroy'''
-	
-	doFirst {
-		vagrantProvider='virtualbox'
-		exec { 
-			commandLine "bash", "-c", "TESTING=$vagrantTesting " \
-			+ "ANSIBLE_PLAYBOOK='testAllTasksDisabled.yml' " \
-			+ "ANSIBLE_GALAXY_FORCE=$ansibleGalaxyForce " \
-			+ "HTTP_PROXY=$vagrantHTTPProxy " \
-			+ "HTTPS_PROXY=$vagrantHTTPSProxy " \
-			+ "VM_MEMORY=$vagrantVMMemory " \
-			+ "VM_GUI=$vagrantGui " \
-			+ "VM_CPUS=$vagrantVMCPUs " \
-			+ "NO_PROXY=$vagrantNoProxy " \
-			+ "BOX_URL=$vagrantBoxURL " \
-			+ "vagrant up ${vagrantVMName} ${vagrantProvision}"
-		}
-	}
-	group = "Testing"
-	
-}
-
-task testIntegrationFromGuest(type: Exec) {
-	description = "Integration tests the role by running ansible playbook. Run this from within the guest from /vagrant/project_name"
-	doFirst { 
-		runAnsibleTagsFromGuest(ansibleTags, ansibleRolesPath, ansibleVerbosity)
-	}
-	group = "Testing"
-}
-
-
-task syncToWindows { 
-	description 'Rsyncs this project over to windows' \
-		+ "* Parameter: ansibleTags - default=''. List of tags to run. \n" \
-		
-	def winMnt = project.hasProperty('winMnt') ? project.property('winMnt') : "/mnt/hgfs/code/${project.name}"
-	doFirst {
-		exec { commandLine "bash", "-c", "rsync --exclude .vagrant --exclude .gradle -ruv ./ ${winMnt}" }
-	}
-	group = "windows"
+    def winMnt = project.hasProperty('winMnt') ? project.property('winMnt') : "/mnt/hgfs/code/${project.name}"
+    doFirst {
+        exec { commandLine "bash", "-c", "rsync --exclude .vagrant --exclude .gradle -ruv ./ ${winMnt}" }
+    }
+    group = "windows"
 
 }
 
-task packerInit() { 
-	doFirst {
-		exec { 
-			commandLine "bash", "-c", """
+task packerInit() {
+    doFirst {
+        exec {
+            commandLine "bash", "-c", """
 				mkdir -p build 
 				curl https://releases.hashicorp.com/packer/1.1.2/packer_1.1.2_linux_amd64.zip --output build/packer_1.1.2_linux_amd64.zip 
 				unzip -o build/packer_1.1.2_linux_amd64.zip -d build
 				if [ -e  /usr/local/sbin/packer ]; then packer --version; else sudo cp build/packer /usr/local/sbin/packer; fi
 			"""
-		}
-		exec { 
-			commandLine "bash", "-c", """			
+        }
+        exec {
+            commandLine "bash", "-c", """			
 				if cd build/packer-ubuntu; then git pull; else mkdir -p build/packer-ubuntu && git clone https://github.com/mtbvang/packer-ubuntu build/packer-ubuntu; fi
 			"""
-		}
-		
-		exec { 
-			commandLine "bash", "-c", """
+        }
+
+        exec {
+            commandLine "bash", "-c", """
 				if cd build/packer-centos; then git pull; else mkdir -p build/packer-centos && git clone https://github.com/mtbvang/packer-centos build/packer-centos; fi
 			"""
-		}
-	}
+        }
+    }
 }
 
-task packerBuildUbuntu1704(dependsOn: packerInit) { 
-	description 'Sets up the requirements to build the boxes with packer.'
-	
-	doFirst {
-		ant.parallel(threadsPerProcessor: 1) { 
-			ant.exec(executable: 'sh', dir: 'build/packer-ubuntu') {
-				arg(value: '-c')
-				arg(value: 'packer build -only=vmware-iso,virtualbox-iso -var-file=ubuntu1704-desktop.json ubuntu.json')
-			}		
-		}
-		
-	}
-	group = "Packer"
-	
+task packerBuildUbuntu1704(dependsOn: packerInit) {
+    description 'Sets up the requirements to build the boxes with packer.'
+
+    doFirst {
+        ant.parallel(threadsPerProcessor: 1) {
+            ant.exec(executable: 'sh', dir: 'build/packer-ubuntu') {
+                arg(value: '-c')
+                arg(value: 'packer build -only=vmware-iso,virtualbox-iso -var-file=ubuntu1704-desktop.json ubuntu.json')
+            }
+        }
+
+    }
+    group = "Packer"
+
 }
 
-task packerBuild(dependsOn: packerInit) { 
-	description 'Sets up the requirements to build the boxes with packer.'
-	
-	doFirst {
-		ant.parallel(threadsPerProcessor: 1) { 
-			ant.exec(executable: 'sh', dir: 'build/packer-ubuntu') {
-				arg(value: '-c')
-				arg(value: 'packer build -only=vmware-iso,virtualbox-iso -var-file=ubuntu1604-desktop.json ubuntu.json')
-			}
-			ant.exec(executable: 'sh', dir: 'build/packer-centos') {
-				arg(value: '-c')
-				arg(value: 'packer build -only=virtualbox-iso -var-file=centos7-desktop.json centos.json')
-			}
-		
-		}
-		
-	}
-	group = "Packer"
-	
+task packerBuild(dependsOn: packerInit) {
+    description 'Sets up the requirements to build the boxes with packer.'
+
+    doFirst {
+        ant.parallel(threadsPerProcessor: 1) {
+            ant.exec(executable: 'sh', dir: 'build/packer-ubuntu') {
+                arg(value: '-c')
+                arg(value: 'packer build -only=vmware-iso,virtualbox-iso -var-file=ubuntu1604-desktop.json ubuntu.json')
+            }
+            ant.exec(executable: 'sh', dir: 'build/packer-centos') {
+                arg(value: '-c')
+                arg(value: 'packer build -only=virtualbox-iso -var-file=centos7-desktop.json centos.json')
+            }
+
+        }
+
+    }
+    group = "Packer"
+
 }
 
 ext.vagrantAddBox = { boxName, boxProvider, boxFile ->
 
-	new ByteArrayOutputStream().withStream { os ->   
-		exec {
-			ignoreExitValue = false
-			commandLine "bash", "-c", 'vagrant box list'
-			standardOutput = os
-		}
-		if(os.toString().find(/${ boxName } \(${ boxProvider }/)) {
-			println("${ boxName } box for ${ boxProvider } already exist. Not adding")
-		}else { 
-			println("${ boxName } box for ${ boxProvider } not found. Adding.")
-			exec {
-				commandLine "bash", "-c", "vagrant box add ${ boxName } ${ boxFile } --provider ${ boxProvider }"
-			}
-		}
-	}  
+    new ByteArrayOutputStream().withStream { os ->
+        exec {
+            ignoreExitValue = false
+            commandLine "bash", "-c", 'vagrant box list'
+            standardOutput = os
+        }
+        if (os.toString().find(/${boxName} \(${boxProvider}/)) {
+            println("${boxName} box for ${boxProvider} already exist. Not adding")
+        } else {
+            println("${boxName} box for ${boxProvider} not found. Adding.")
+            exec {
+                commandLine "bash", "-c", "vagrant box add ${boxName} ${boxFile} --provider ${boxProvider}"
+            }
+        }
+    }
 
 }
 
-task packerAddBoxes { 
-	description 'Added boxes to vagrant'
-	doFirst {
-		vagrantAddBox('boxcutter/ubuntu1604-desktop', 'virtualbox', 'build/packer-ubuntu/box/virtualbox/ubuntu1604-desktop-0.1.0.box')
-		vagrantAddBox('boxcutter/ubuntu1604-desktop', 'vmware_desktop', 'build/packer-ubuntu/box/vmware/ubuntu1604-desktop-0.1.0.box')
-		vagrantAddBox('boxcutter/centos7-desktop', 'virtualbox', 'build/packer-centos/box/virtualbox/centos7-desktop-0.0.99.box')
-	}
-	group = "Packer"
+task packerAddBoxes {
+    description 'Added boxes to vagrant'
+    doFirst {
+        vagrantAddBox('boxcutter/ubuntu1604-desktop', 'virtualbox', 'build/packer-ubuntu/box/virtualbox/ubuntu1604-desktop-0.1.0.box')
+        vagrantAddBox('boxcutter/ubuntu1604-desktop', 'vmware_desktop', 'build/packer-ubuntu/box/vmware/ubuntu1604-desktop-0.1.0.box')
+        vagrantAddBox('boxcutter/centos7-desktop', 'virtualbox', 'build/packer-centos/box/virtualbox/centos7-desktop-0.0.99.box')
+    }
+    group = "Packer"
 }
 
 task packer(dependsOn: [
-	'packerBuild', 
-	'packerAddBoxes'
-]) { 
-	description 'Build and add required vagrant boxes.'
-	packerAddBoxes.mustRunAfter(packerBuild)
+        'packerBuild',
+        'packerAddBoxes'
+]) {
+    description 'Build and add required vagrant boxes.'
+    packerAddBoxes.mustRunAfter(packerBuild)
 }
+
+
+ext.runSetupLocalTestRoles = {
+
+    // Run ansible galaxy to install all roles
+    exec { commandLine "bash", "-c", "rm -rf provision/.roles && provision/ansible_galaxy.sh provision/.roles --force" }
+
+    // Clone transitive dependencies of dependencies manually since we're not running ansible galaxy and symlink
+    exec {
+        commandLine "bash", "-c", "if cd ../ansible-role-ansible; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-ansible; fi"
+    }
+    exec {
+        commandLine "bash", "-c", "rm -rf ${ansibleRolesPath}/ansible && ln -sf ../../../ansible-role-ansible ${ansibleRolesPath}/ansible"
+    }
+
+    exec {
+        commandLine "bash", "-c", "if cd ../ansible-role-devtools; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-devtools; fi"
+    }
+    exec {
+        commandLine "bash", "-c", "rm -rf ${ansibleRolesPath}/devtools && ln -sf ../../../ansible-role-devtools ${ansibleRolesPath}/devtools"
+    }
+
+    exec {
+        commandLine "bash", "-c", "if cd ../ansible-role-docker-1; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-docker-1; fi"
+    }
+    exec {
+        commandLine "bash", "-c", "rm -rf ${ansibleRolesPath}/docker && ln -sf ../../../ansible-role-docker-1 ${ansibleRolesPath}/docker"
+    }
+
+    exec {
+        commandLine "bash", "-c", "if cd ../ansible-role-repo-epel; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-repo-epel; fi"
+    }
+    exec {
+        commandLine "bash", "-c", "rm -rf ${ansibleRolesPath}/epel && ln -sf ../../../ansible-role-repo-epel ${ansibleRolesPath}/epel"
+    }
+
+    exec {
+        commandLine "bash", "-c", "if cd ../ansible-role-git; then git pull; else cd ../ && git clone https://github.com/geerlingguy/ansible-role-git; fi"
+    }
+    exec {
+        commandLine "bash", "-c", "rm -rf ${ansibleRolesPath}/git && ln -sf ../../../ansible-role-git ${ansibleRolesPath}/git"
+    }
+
+    exec {
+        commandLine "bash", "-c", "if cd ../ansible-role-intellij; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-intellij; fi"
+    }
+    exec {
+        commandLine "bash", "-c", "rm -rf ${ansibleRolesPath}/intellij && ln -sf ../../../ansible-role-intellij ${ansibleRolesPath}/intellij"
+    }
+
+    exec {
+        commandLine "bash", "-c", "if cd ../ansible-role-openshift_client; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-openshift_client; fi"
+    }
+    exec {
+        commandLine "bash", "-c", "rm -rf ${ansibleRolesPath}/openshift_client && ln -sf ../../../ansible-role-openshift_client ${ansibleRolesPath}/openshift_client"
+    }
+
+    exec {
+        commandLine "bash", "-c", "if cd ../ansible-role-vagrant; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-vagrant; fi"
+    }
+    exec {
+        commandLine "bash", "-c", "rm -rf ${ansibleRolesPath}/vagrant && ln -sf ../../../ansible-role-vagrant ${ansibleRolesPath}/vagrant"
+    }
+
+    exec {
+        commandLine "bash", "-c", "if cd ../ansible-role-virtualbox; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-virtualbox; fi"
+    }
+    exec {
+        commandLine "bash", "-c", "rm -rf ${ansibleRolesPath}/virtualbox && ln -sf ../../../ansible-role-virtualbox ${ansibleRolesPath}/virtualbox"
+    }
+
+    exec {
+        commandLine "bash", "-c", "if cd ../ansible-role-eclipse; then git pull; else cd ../ && git clone https://github.com/mtbvang/ansible-role-eclipse; fi"
+    }
+    exec {
+        commandLine "bash", "-c", "rm -rf ${ansibleRolesPath}/eclipse && ln -sf ../../../ansible-role-eclipse ${ansibleRolesPath}/eclipse"
+    }
+
+}
+
+task setupLocalTestRoles {
+    description 'Checkout and great symlinks to required ansible roles.'
+
+    //TODO read in requirement.yml and checkout versions.
+    doFirst {
+        runSetupLocalTestRoles()
+    }
+}
+
+task cleanLocalTestRoles {
+    doFirst {
+        exec { commandLine "bash", "-c", "rm -rf ${ansibleRolesPath}" }
+    }
+    group = "Testing"
+}
+
+task testUnitFromGuest() {
+    description "Note: Windows users can't run this role. Run unit style test by using ansible tags to run specific tasks. Tag all your tasks during development so that they can be run to give this style of test.\n" \
+		 + "* Parameter: ansibleTags - default=''. List of tags to run. \n" \
+		 + "* Parameter: ansibleVerbosity - default='-v'. Verbosity of logging. v to vvvv. \n" \
+		 + "* Parameter: ansibleRolePath - default='projectDir/${ansibleRolesPath}'. \n" \
+		 + "* Example usage: ./gradlew -PansibleTtags=setnsswitch testunit"
+
+    doFirst {
+        runAnsibleTagsOnLocal(ansibleTags, ansibleSkipTags, ansibleRolesPath, ansibleVerbosity, ansiblePlaybookPathGuest)
+    }
+    group = "Testing"
+}
+
+task testInit {
+    description 'Test initialization tasks'
+
+    doFirst {
+        //Set to virtual box unless vmware provider exists
+        vagrantProvider = 'virtualbox'
+        vagrantVMCPUs = 2
+        vagrantVMMemory = 6144
+        vagrantVMCPUCap = 50
+        exec { commandLine "bash", "-c", "rm -rf ${ansibleRolesPath}" }
+    }
+
+}
+
+
+task testUnit() {
+    description 'Run unit style test by using ansible tags to run specific tasks. Tag all your tasks during development so that they can be run to give this style of test.\n' \
+		 + "* Parameter: ansibleTags - default=''. List of tags to run. \n" \
+		 + "* Parameter: ansibleVerbosity - default='-v'. Verbosity of logging. -v to -vvvv. \n" \
+		 + "* Parameter: ansibleRolePath - default='projectDir/${ansibleRolesPath}'. \n" \
+		 + "* Example usage: ./gradlew -PansibleTags=setnsswitch testunitfromhost"
+    ansibleGalaxy
+    doFirst {
+        ansibleRolesPath = "/vagrant/${project.name}/${relativeAnsibleRolesPath}"
+        runAnsibleTagsFromHost(ansibleTags, ansibleSkipTags, ansibleRolesPath, ansibleVerbosity, ansiblePlaybookPathGuest)
+    }
+    group = "Testing"
+}
+
+task testComponent() {
+    description 'Run component tests by using ansible tags to run specific tasks. Like unitTests task, but use component style ansible tagging.\n' \
+		 + "* Parameter: ansibleTags - default=''. List of tags to run. \n" \
+		 + "* Parameter: ansibleRolePath - default='projectDir/${ansibleRolesPath}'. " \
+		 + "* Example usage: ./gradlew -PansibleTags=dns testcomponent"
+
+    doFirst {
+        runAnsibleTags()
+    }
+    group = "Testing"
+}
+
+task testIntegrationWithCleanVM(dependsOn: ['testInit', 'recreate']) {
+    description 'Calls recreate. This task is here more for documentation and convenience.'
+    group = "Testing"
+    recreate.mustRunAfter(testInit)
+}
+
+task ansibleRolesCleanAndInstall {
+    description 'Clean and updates ansible roles.'
+    doFirst {
+        ansibleGalaxyCleanAndInstall()
+    }
+}
+
+task testIntegration(dependsOn: 'ansibleRolesCleanAndInstall') {
+    description 'Integration test the role by running vagrant ansibleGalaxy and ansiblePlaybook provisioners within the guest VM. The provisioning scripts run by vagrant will delete all roles to force their download.'
+    doFirst {
+        ansibleRolesPath = "/vagrant/${project.name}/${relativeAnsibleRolesPath}"
+        runAnsibleTagsFromHost(ansibleTags, ansibleSkipTags, ansibleRolesPath, ansibleVerbosity, ansiblePlaybookPathGuest)
+    }
+    group = "Testing"
+}
+
+
+task testIntegrationWithLocalRoles(dependsOn: [
+        'setupLocalTestRoles'
+]) {
+    description "Integration tests by running the playbook using symlinks to local roles. Allows you to make changes to of the component roles locally and then integration test it." \
+		 + "* Parameters: vagrantVMName, default centos."
+
+    doFirst {
+        ansibleRolesPath = "/vagrant/${project.name}/${relativeAnsibleRolesPath}"
+        runAnsibleTagsFromHost(ansibleTags, ansibleSkipTags, ansibleRolesPath, ansibleVerbosity, ansiblePlaybookPathGuest)
+    }
+    group = "Testing"
+}
+
+task testIntegrationWithLocalRolesWithCleanVM() {
+    description "Integration tests by running the playbook using symlinks to local roles on a clean VM. Allows you to make changes to of the component roles locally and then integration test it." \
+		 + "* Parameters: vagrantVMName, default centos."
+
+    doFirst {
+        runVagrantDestroy()
+        runSetupLocalTestRoles()
+        ansibleGalaxy = false
+        vagrantProvider = 'virtualbox'
+        runVagrantUp()
+    }
+    group = "Testing"
+}
+
+
+task testIntegrationAllTasksDisabled(dependsOn: 'destroy') {
+    description '''
+	Test all flags sued to disable tasks so that nothing gets installed. Integration tests the role by running vagrant ansibleGalaxy and 
+	ansiblePlaybook provisioners within the guest VM via the vagrant ansible_local provisioner. The provisioning scripts run by vagrant 
+	will delete all roles to force their download. To rerun the playbook on the existing VM run gradle with the -x option e.g.: 
+	./gradlew testintegrationalltasksdisabled -x destroy'''
+
+    doFirst {
+        vagrantProvider = 'virtualbox'
+        exec {
+            commandLine "bash", "-c", "TESTING=$vagrantTesting " \
+			 + "ANSIBLE_PLAYBOOK='testAllTasksDisabled.yml' " \
+			 + "ANSIBLE_GALAXY_FORCE=$ansibleGalaxyForce " \
+			 + "HTTP_PROXY=$vagrantHTTPProxy " \
+			 + "HTTPS_PROXY=$vagrantHTTPSProxy " \
+			 + "VM_MEMORY=$vagrantVMMemory " \
+			 + "VM_GUI=$vagrantGui " \
+			 + "VM_CPUS=$vagrantVMCPUs " \
+			 + "NO_PROXY=$vagrantNoProxy " \
+			 + "BOX_URL=$vagrantBoxURL " \
+			 + "vagrant up ${vagrantVMName} ${vagrantProvision}"
+        }
+    }
+    group = "Testing"
+
+}
+
+task testIntegrationFromGuest(type: Exec) {
+    description = "Integration tests the role by running ansible playbook. Run this from within the guest from /vagrant/project_name"
+    doFirst {
+        runAnsibleTagsOnLocal(ansibleTags, ansibleSkipTags, ansibleRolesPath, ansibleVerbosity, ansiblePlaybookPathGuest)
+    }
+    group = "Testing"
+}
+

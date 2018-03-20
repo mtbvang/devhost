@@ -21,6 +21,13 @@ To install the required vagrant boxes you need to build and add them using packe
 Usage
 -----
 
+To start a virtual machine. Clone this repository and then run from the project root directory:
+
+```
+./gradlew up
+```
+
+
 This repository can be used to spin up a virtual machine with the Ubuntu 16.04 development host or to provision a local development host.
 
 To provision a local host:
@@ -33,11 +40,17 @@ sudo -i
 
 ```
 
-To start a virtual machine. Clone this repository and then run:
+The development host machine can be incrementally updated by applying specific ansible tags e.g.:
 
 ```
-./gradlew up
+git clone https://github.com/mtbvang/devhost
+cd devhost
+./gradlew ansibleRoles
+./gradlew ansibleprovision -PansibleTags=oc --no-daemon
 ```
+
+The -PansibleTags=oc only runs tasks tagged with the label oc.
+
 
 Role Variables
 --------------
