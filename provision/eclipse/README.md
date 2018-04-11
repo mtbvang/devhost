@@ -1,13 +1,17 @@
-Eclipse Settings
+#Eclipse Settings
 
-Import the eclipse_neon_4.6.2.p2f file.
+##Import the eclipse_neon_4.6.2.epf file.
+
+File > Import > General Preferences
+
+The import should have set the following settings:
+
+- Keep 'Import all' checked.
+- Finish
+
+##Import the eclipse_neon_4.6.2.p2f file.
 
 File > Import > Perferences
 
-- Preferences > Appearance
-    Theme: Dark
-- Preferences > Appearance > Color Theme
-    Wombat
-- Preferences > Appearance > Colors and Fonts
-    Text Editor Block Selection Font: Liberation Mono 12
-    Text Font: Liberation Mono 12
+
+    
